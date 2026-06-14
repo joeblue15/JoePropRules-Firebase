@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/firebase/client';
+import { collection, doc, getDoc, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 import type { CategoryType, ChallengeWithDetails, Update } from '@/lib/types';
 import { PropHeader } from '@/components/prop-header';
 import { RulesTabs } from '@/components/rules-tabs';
@@ -23,49 +24,61 @@ const categories: CategoryType[] = [
 ];
 
 async function getChallengeBySlug(propSlug: string, challengeSlug: string): Promise<ChallengeWithDetails | null> {
-  const { data: prop } = await db
-    .from('props')
-    .select('*')
-    .eq('slug', propSlug)
-    .eq('is_active', true)
-    .single();
+  try {
+    // Get prop by slug
+    const q = query(collection(db, 'props'), where('slug', '==', propSlug), where('is_active', '==', true));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) return null;
+    const prop = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
 
-  if (!prop) return null;
+    // Get challenge by slug and prop_id
+    const challengeQuery = query(
+      collection(db, 'challenges'),
+      where('prop_id', '==', prop.id),
+      where('slug', '==', challengeSlug),
+      where('is_active', '==', true)
+    );
+    const challengeSnapshot = await getDocs(challengeQuery);
+    
+    if (challengeSnapshot.empty) return null;
+    const challenge = { id: challengeSnapshot.docs[0].id, ...challengeSnapshot.docs[0].data() };
 
-  const { data: challenges } = await db
-    .from('challenges')
-    .select('*')
-    .eq('prop_id', prop.id)
-    .eq('slug', challengeSlug)
-    .eq('is_active', true);
+    // Get rules, score, and discounts in parallel
+    const [rulesSnapshot, scoreDoc, discountsSnapshot] = await Promise.all([
+      getDocs(query(collection(db, 'rules'), where('challenge_id', '==', challenge.id))),
+      getDoc(doc(db, 'challenge_scores', challenge.id)),
+      getDocs(query(collection(db, 'discounts'), where('prop_id', '==', prop.id), where('is_active', '==', true)))
+    ]);
 
-  if (!challenges || challenges.length === 0) return null;
-  const challenge = challenges[0];
-
-  const [rulesRes, scoreRes, discountsRes] = await Promise.all([
-    db.from('rules').select('*').eq('challenge_id', challenge.id),
-    db.from('challenge_scores').select('*').eq('challenge_id', challenge.id).single(),
-    db.from('discounts').select('*').eq('prop_id', prop.id).eq('is_active', true),
-  ]);
-
-  return {
-    ...challenge,
-    prop,
-    rules: rulesRes.data || [],
-    score: scoreRes.data || undefined,
-    discount: discountsRes.data?.[0] || undefined,
-  };
+    return {
+      ...challenge,
+      prop,
+      rules: rulesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })),
+      score: scoreDoc.exists() ? (scoreDoc.data() as any) : undefined,
+      discount: discountsSnapshot.empty ? undefined : { id: discountsSnapshot.docs[0].id, ...discountsSnapshot.docs[0].data() },
+    };
+  } catch (error) {
+    console.error('Error fetching challenge:', error);
+    return null;
+  }
 }
 
 async function getRelatedUpdates(propId: string) {
-  const { data } = await db
-    .from('updates')
-    .select('*')
-    .eq('prop_id', propId)
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .limit(5);
-  return data || [];
+  try {
+    const q = query(
+      collection(db, 'updates'),
+      where('prop_id', '==', propId),
+      where('is_active', '==', true),
+      orderBy('created_at', 'desc'),
+      limit(5)
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  } catch (error) {
+    console.error('Error fetching updates:', error);
+    return [];
+  }
 }
 
 export default async function ChallengePage({ params }: PageProps) {

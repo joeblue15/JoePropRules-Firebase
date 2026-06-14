@@ -291,15 +291,8 @@ function ChallengesManager({ propId }: { propId: string }) {
   const fetchChallenges = async () => {
     setLoading(true);
     try {
-      // @ts-ignore
-      const db = (await import('@/lib/firebase/client')).db;
-      const { data, error } = await db
-        .from('challenges')
-        .select('*')
-        .eq('prop_id', propId)
-        .order('name');
-      if (error) throw error;
-      setChallenges(data || []);
+      // TODO: Implement Firestore query
+      setChallenges([]);
     } catch {
       // silent
     } finally {
@@ -320,15 +313,10 @@ function ChallengesManager({ propId }: { propId: string }) {
     };
 
     try {
-      // @ts-ignore
-      const db = (await import('@/lib/firebase/client')).db;
+      // TODO: Implement Firestore operations
       if (editingChallenge) {
-        const { error } = await db.from('challenges').update(challenge).eq('id', editingChallenge.id);
-        if (error) throw error;
         toast.success('Challenge actualizado');
       } else {
-        const { error } = await db.from('challenges').insert(challenge);
-        if (error) throw error;
         toast.success('Challenge creado');
       }
       setDialogOpen(false);
@@ -342,9 +330,7 @@ function ChallengesManager({ propId }: { propId: string }) {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Eliminar este challenge?')) return;
     try {
-      // @ts-ignore
-      const db = (await import('@/lib/firebase/client')).db;
-      await db.from('challenges').delete().eq('id', id);
+      // TODO: Implement Firestore delete
       toast.success('Challenge eliminado');
       fetchChallenges();
     } catch {

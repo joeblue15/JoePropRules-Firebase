@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { db } from '@/lib/firebase/client';
+import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
 import Link from 'next/link';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,22 +10,27 @@ interface PageProps {
 }
 
 async function getProp(slug: string) {
-  const { data: prop } = await db
-    .from('props')
-    .select('*')
-    .eq('slug', slug)
-    .eq('is_active', true)
-    .single();
-  if (!prop) return null;
+  try {
+    const q = query(collection(db, 'props'), where('slug', '==', slug), where('is_active', '==', true));
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) return null;
+    const prop = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
 
-  const { data: challenges } = await db
-    .from('challenges')
-    .select('*')
-    .eq('prop_id', prop.id)
-    .eq('is_active', true)
-    .order('name');
+    const challengesQuery = query(
+      collection(db, 'challenges'),
+      where('prop_id', '==', prop.id),
+      where('is_active', '==', true),
+      orderBy('name')
+    );
+    const challengesSnapshot = await getDocs(challengesQuery);
+    const challenges = challengesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  return { ...prop, challenges: challenges || [] };
+    return { ...prop, challenges };
+  } catch (error) {
+    console.error('Error fetching prop:', error);
+    return null;
+  }
 }
 
 export default async function PropPage({ params }: PageProps) {

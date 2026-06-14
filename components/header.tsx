@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth-context';
 import { db } from '@/lib/firebase/client';
+import { collection, getDocs, query, where, limit } from 'firebase/firestore';
 
 interface PropResult {
   id: string;
@@ -57,13 +58,23 @@ export function Header() {
       return;
     }
     const timeout = setTimeout(async () => {
-      const { data } = await db
-        .from('props')
-        .select('id, name, slug, type')
-        .ilike('name', `%${searchQuery}%`)
-        .eq('is_active', true)
-        .limit(6);
-      setSearchResults(data || []);
+      try {
+        const q = query(
+          collection(db, 'props'),
+          where('is_active', '==', true),
+          limit(20)
+        );
+        const querySnapshot = await getDocs(q);
+        const allProps = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Filter by name client-side (simplified approach)
+        const filtered = allProps.filter((prop: any) => 
+          prop.name.toLowerCase().includes(searchQuery.toLowerCase())
+        ).slice(0, 6);
+        setSearchResults(filtered || []);
+      } catch (error) {
+        console.error('Error searching props:', error);
+        setSearchResults([]);
+      }
     }, 200);
     return () => clearTimeout(timeout);
   }, [searchQuery]);
