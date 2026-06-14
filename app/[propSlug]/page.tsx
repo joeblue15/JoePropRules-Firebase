@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { db } from '@/lib/firebase/client';
 import Link from 'next/link';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ interface PageProps {
 }
 
 async function getProp(slug: string) {
-  const { data: prop } = await supabase
+  const { data: prop } = await db
     .from('props')
     .select('*')
     .eq('slug', slug)
@@ -17,7 +17,7 @@ async function getProp(slug: string) {
     .single();
   if (!prop) return null;
 
-  const { data: challenges } = await supabase
+  const { data: challenges } = await db
     .from('challenges')
     .select('*')
     .eq('prop_id', prop.id)

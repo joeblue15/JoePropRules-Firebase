@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/lib/auth-context';
-import { supabase } from '@/lib/supabase/client';
+import { db } from '@/lib/firebase/client';
 
 interface PropResult {
   id: string;
@@ -57,7 +57,7 @@ export function Header() {
       return;
     }
     const timeout = setTimeout(async () => {
-      const { data } = await supabase
+      const { data } = await db
         .from('props')
         .select('id, name, slug, type')
         .ilike('name', `%${searchQuery}%`)

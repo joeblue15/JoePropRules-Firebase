@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
+import { db } from '@/lib/firebase/client';
 import type { CategoryType, ChallengeWithDetails, Update } from '@/lib/types';
 import { PropHeader } from '@/components/prop-header';
 import { RulesTabs } from '@/components/rules-tabs';
@@ -23,7 +23,7 @@ const categories: CategoryType[] = [
 ];
 
 async function getChallengeBySlug(propSlug: string, challengeSlug: string): Promise<ChallengeWithDetails | null> {
-  const { data: prop } = await supabase
+  const { data: prop } = await db
     .from('props')
     .select('*')
     .eq('slug', propSlug)
@@ -32,7 +32,7 @@ async function getChallengeBySlug(propSlug: string, challengeSlug: string): Prom
 
   if (!prop) return null;
 
-  const { data: challenges } = await supabase
+  const { data: challenges } = await db
     .from('challenges')
     .select('*')
     .eq('prop_id', prop.id)
@@ -43,9 +43,9 @@ async function getChallengeBySlug(propSlug: string, challengeSlug: string): Prom
   const challenge = challenges[0];
 
   const [rulesRes, scoreRes, discountsRes] = await Promise.all([
-    supabase.from('rules').select('*').eq('challenge_id', challenge.id),
-    supabase.from('challenge_scores').select('*').eq('challenge_id', challenge.id).single(),
-    supabase.from('discounts').select('*').eq('prop_id', prop.id).eq('is_active', true),
+    db.from('rules').select('*').eq('challenge_id', challenge.id),
+    db.from('challenge_scores').select('*').eq('challenge_id', challenge.id).single(),
+    db.from('discounts').select('*').eq('prop_id', prop.id).eq('is_active', true),
   ]);
 
   return {
@@ -58,7 +58,7 @@ async function getChallengeBySlug(propSlug: string, challengeSlug: string): Prom
 }
 
 async function getRelatedUpdates(propId: string) {
-  const { data } = await supabase
+  const { data } = await db
     .from('updates')
     .select('*')
     .eq('prop_id', propId)

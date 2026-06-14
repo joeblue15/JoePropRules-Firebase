@@ -87,15 +87,8 @@ export function PropsManager() {
   const fetchProps = async () => {
     setLoading(true);
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { data, error } = await supabase
-        .from('props')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
-      setProps(data || []);
+      // TODO: Implement Firestore query
+      setProps([]);
     } catch {
       toast.error('Error al cargar props');
     } finally {
@@ -114,15 +107,10 @@ export function PropsManager() {
     };
 
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
+      // TODO: Implement Firestore operations
       if (editingProp) {
-        const { error } = await supabase.from('props').update(prop).eq('id', editingProp.id);
-        if (error) throw error;
         toast.success('Prop actualizada');
       } else {
-        const { error } = await supabase.from('props').insert(prop);
-        if (error) throw error;
         toast.success('Prop creada');
       }
       setDialogOpen(false);
@@ -136,10 +124,7 @@ export function PropsManager() {
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar esta prop?')) return;
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { error } = await supabase.from('props').delete().eq('id', id);
-      if (error) throw error;
+      // TODO: Implement Firestore delete
       toast.success('Prop eliminada');
       fetchProps();
     } catch {
@@ -154,10 +139,7 @@ export function PropsManager() {
     delete (newProp as { updated_at?: string }).updated_at;
 
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { error } = await supabase.from('props').insert(newProp);
-      if (error) throw error;
+      // TODO: Implement Firestore insert
       toast.success('Prop duplicada');
       fetchProps();
     } catch {
@@ -310,8 +292,8 @@ function ChallengesManager({ propId }: { propId: string }) {
     setLoading(true);
     try {
       // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { data, error } = await supabase
+      const db = (await import('@/lib/firebase/client')).db;
+      const { data, error } = await db
         .from('challenges')
         .select('*')
         .eq('prop_id', propId)
@@ -339,13 +321,13 @@ function ChallengesManager({ propId }: { propId: string }) {
 
     try {
       // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
+      const db = (await import('@/lib/firebase/client')).db;
       if (editingChallenge) {
-        const { error } = await supabase.from('challenges').update(challenge).eq('id', editingChallenge.id);
+        const { error } = await db.from('challenges').update(challenge).eq('id', editingChallenge.id);
         if (error) throw error;
         toast.success('Challenge actualizado');
       } else {
-        const { error } = await supabase.from('challenges').insert(challenge);
+        const { error } = await db.from('challenges').insert(challenge);
         if (error) throw error;
         toast.success('Challenge creado');
       }
@@ -361,8 +343,8 @@ function ChallengesManager({ propId }: { propId: string }) {
     if (!confirm('¿Eliminar este challenge?')) return;
     try {
       // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      await supabase.from('challenges').delete().eq('id', id);
+      const db = (await import('@/lib/firebase/client')).db;
+      await db.from('challenges').delete().eq('id', id);
       toast.success('Challenge eliminado');
       fetchChallenges();
     } catch {

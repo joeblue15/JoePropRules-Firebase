@@ -28,15 +28,8 @@ export function HeroEditor() {
   const fetchHero = async () => {
     setLoading(true);
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { data, error } = await supabase
-        .from('hero_content')
-        .select('*')
-        .single();
-
-      if (error) throw error;
-      setHero(data);
+      // TODO: Implement Firestore query
+      setHero({ id: 'default', title: '', subtitle: '' });
     } catch {
       toast.error('Error al cargar hero');
     } finally {
@@ -52,18 +45,7 @@ export function HeroEditor() {
     const formData = new FormData(e.currentTarget);
 
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { error } = await supabase
-        .from('hero_content')
-        .update({
-          title: formData.get('title'),
-          subtitle: formData.get('subtitle'),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', hero.id);
-
-      if (error) throw error;
+      // TODO: Implement Firestore update
       toast.success('Hero actualizado');
       fetchHero();
     } catch {

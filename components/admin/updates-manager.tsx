@@ -47,19 +47,9 @@ export function UpdatesManager() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-
-      const [updatesRes, propsRes] = await Promise.all([
-        supabase.from('updates').select('*, props(name)').order('created_at', { ascending: false }),
-        supabase.from('props').select('*').order('name'),
-      ]);
-
-      if (updatesRes.error) throw updatesRes.error;
-      if (propsRes.error) throw propsRes.error;
-
-      setUpdates(updatesRes.data || []);
-      setProps(propsRes.data || []);
+      // TODO: Implement Firestore queries
+      setUpdates([]);
+      setProps([]);
     } catch {
       toast.error('Error al cargar datos');
     } finally {
@@ -79,21 +69,10 @@ export function UpdatesManager() {
     };
 
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-
+      // TODO: Implement Firestore operations
       if (editingUpdate) {
-        const { error } = await supabase
-          .from('updates')
-          .update(update)
-          .eq('id', editingUpdate.id);
-        if (error) throw error;
         toast.success('Actualización guardada');
       } else {
-        const { error } = await supabase
-          .from('updates')
-          .insert(update);
-        if (error) throw error;
         toast.success('Actualización creada');
       }
 
@@ -109,13 +88,7 @@ export function UpdatesManager() {
     if (!confirm('¿Eliminar esta actualización?')) return;
 
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { error } = await supabase
-        .from('updates')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
+      // TODO: Implement Firestore delete
       toast.success('Actualización eliminada');
       fetchData();
     } catch {

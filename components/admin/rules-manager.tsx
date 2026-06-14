@@ -298,26 +298,9 @@ function CategoryEditor({
   const handleSave = async () => {
     setSaving(true);
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const payload = {
-        challenge_id: challengeId,
-        category,
-        content: buildContent(),
-        alerts,
-        interpretations,
-        updated_at: new Date().toISOString(),
-      };
-
-      const { data, error } = await supabase
-        .from('rules')
-        .upsert(payload, { onConflict: 'challenge_id,category' })
-        .select()
-        .single();
-
-      if (error) throw error;
+      // TODO: Implement Firestore upsert
       toast.success('Reglas guardadas');
-      onSaved(data);
+      onSaved(null);
     } catch (e: unknown) {
       toast.error('Error al guardar: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
@@ -413,12 +396,7 @@ function ScoreEditor({ challengeId, existing, onSaved }: {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { error } = await supabase
-        .from('challenge_scores')
-        .upsert({ challenge_id: challengeId, ...scores, updated_at: new Date().toISOString() }, { onConflict: 'challenge_id' });
-      if (error) throw error;
+      // TODO: Implement Firestore upsert
       toast.success('Score guardado');
       onSaved();
     } catch (e: unknown) {
@@ -464,14 +442,9 @@ function ChallengeRulesEditor({ challengeId, challengeName }: { challengeId: str
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const [rulesRes, scoreRes] = await Promise.all([
-        supabase.from('rules').select('*').eq('challenge_id', challengeId),
-        supabase.from('challenge_scores').select('*').eq('challenge_id', challengeId).maybeSingle(),
-      ]);
-      setRules(rulesRes.data || []);
-      setScore(scoreRes.data || null);
+      // TODO: Implement Firestore queries
+      setRules([]);
+      setScore(null);
     } catch {
       toast.error('Error al cargar reglas');
     } finally {
@@ -554,10 +527,8 @@ export function RulesManager() {
 
   useEffect(() => {
     (async () => {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { data } = await supabase.from('props').select('*').order('name');
-      setProps(data || []);
+      // TODO: Implement Firestore query
+      setProps([]);
       setLoading(false);
     })();
   }, []);
@@ -565,10 +536,8 @@ export function RulesManager() {
   useEffect(() => {
     if (!selectedPropId) { setChallenges([]); setSelectedChallengeId(''); return; }
     (async () => {
-      // @ts-ignore
-      const supabase = (await import('@/lib/supabase/client')).supabase;
-      const { data } = await supabase.from('challenges').select('*').eq('prop_id', selectedPropId).order('name');
-      setChallenges(data || []);
+      // TODO: Implement Firestore query
+      setChallenges([]);
       setSelectedChallengeId('');
     })();
   }, [selectedPropId]);

@@ -2,23 +2,14 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase/client';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const handleCallback = async () => {
-      const { error } = await supabase.auth.getSession();
-
-      if (error) {
-        console.error('Auth error:', error);
-      }
-
-      router.push('/');
-    };
-
-    handleCallback();
+    // Firebase handles authentication automatically via onAuthStateChanged
+    // This callback page is just a redirect placeholder
+    router.push('/');
   }, [router]);
 
   return (
