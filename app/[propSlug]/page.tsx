@@ -15,7 +15,7 @@ async function getProp(slug: string) {
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) return null;
-    const prop = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+    const prop = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as any;
 
     const challengesQuery = query(
       collection(db, 'challenges'),
@@ -24,7 +24,7 @@ async function getProp(slug: string) {
       orderBy('name')
     );
     const challengesSnapshot = await getDocs(challengesQuery);
-    const challenges = challengesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const challenges = challengesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
 
     return { ...prop, challenges };
   } catch (error) {

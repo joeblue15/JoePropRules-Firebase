@@ -30,7 +30,7 @@ async function getChallengeBySlug(propSlug: string, challengeSlug: string): Prom
     const querySnapshot = await getDocs(q);
     
     if (querySnapshot.empty) return null;
-    const prop = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() };
+    const prop = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as any;
 
     // Get challenge by slug and prop_id
     const challengeQuery = query(
@@ -42,7 +42,7 @@ async function getChallengeBySlug(propSlug: string, challengeSlug: string): Prom
     const challengeSnapshot = await getDocs(challengeQuery);
     
     if (challengeSnapshot.empty) return null;
-    const challenge = { id: challengeSnapshot.docs[0].id, ...challengeSnapshot.docs[0].data() };
+    const challenge = { id: challengeSnapshot.docs[0].id, ...challengeSnapshot.docs[0].data() } as any;
 
     // Get rules, score, and discounts in parallel
     const [rulesSnapshot, scoreDoc, discountsSnapshot] = await Promise.all([
